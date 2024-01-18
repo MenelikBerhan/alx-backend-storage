@@ -8,7 +8,7 @@
 -- create a function with above specification
 DELIMITER $
 CREATE FUNCTION SafeDiv(num1 INT, num2 INT)
-RETURNS float DETERMINISTIC
+RETURNS FLOAT DETERMINISTIC
 BEGIN
     IF num2 = 0 THEN
         RETURN 0;
