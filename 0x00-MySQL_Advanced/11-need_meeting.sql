@@ -7,7 +7,6 @@
     AND no `last_meeting` date OR more than a month.
  */
 -- create a view with above specification
--- CREATE VIEW need_meeting
 CREATE VIEW need_meeting
 AS SELECT name FROM students
 WHERE score < 80
