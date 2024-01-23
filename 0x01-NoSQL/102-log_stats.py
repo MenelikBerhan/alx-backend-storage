@@ -26,20 +26,11 @@ if __name__ == "__main__":
     #   * group by ip (using 'ip' as '_id') and count members in each group,
     #   * sort in descending order (on 'ipCounts') and limit results to 10.
     top_ips = collection.aggregate([
-            {'$group': {'_id': '$ip', 'ipCounts': {'$count': {}}}},
+            {'$group': {'_id': '$ip', 'ipCounts': {'$sum': 1}}},
             {'$sort': {'ipCounts': -1}},
-            {'$limit': 10},
+            {'$limit': 10}
         ])
 
-    sorted_ips = list(top_ips)
-    # sorted_ips.sort(key=(lambda x: (x.get('_id'))), reverse=True)
-
-    sorted_ips.sort(
-        key=(lambda x: (x.get('ipCounts'),
-                        x['_id'] if x['_id'] != '172.31.2.14'
-                        else '172.31.62')), reverse=True)
-
-    # print(sorted_ips)
     print('IPs:')
-    for ip in sorted_ips:
+    for ip in top_ips:
         print('\t{}: {}'.format(ip.get('_id'), ip.get('ipCounts')))
