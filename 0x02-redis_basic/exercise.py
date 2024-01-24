@@ -13,13 +13,19 @@ def count_calls(method: Callable) -> Callable:
     using the methods `__qualname__` as key, and returns the value
     returned by the original method."""
     @wraps(method)
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self, *args):
         """A wrapper function for the decorator"""
         key = method.__qualname__
         self._redis.incr(key, 1)
-        return method(self, *args, *kwargs)
-
+        return method(self, *args)
     return wrapper
+
+
+# def call_history(method: Callable) -> Callable:
+#  """A decorator that stores inputs and outputs history of calls to `method`
+#     in Redis using the methods `__qualname__` as key, and returns the value
+#     returned by the original method."""
+#     pass
 
 
 class Cache():
