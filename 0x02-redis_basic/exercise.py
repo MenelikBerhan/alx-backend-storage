@@ -38,6 +38,21 @@ def call_history(method: Callable) -> Callable:
     return wrapper
 
 
+def replay(method: Callable) -> None:
+    """Displays the history of calls to `method`"""
+    # decode responses using 'utf-8' (default)
+    cache = redis.Redis(decode_responses=True)
+
+    key = method.__qualname__
+    calls = cache.get(key)
+    inputs = cache.lrange(key + ':inputs', 0, -1)
+    outputs = cache.lrange(key + ':outputs', 0, -1)
+
+    print('{} was called {} times:'.format(key, calls if calls else 0))
+    for input, output in zip(inputs, outputs):
+        print('{}(*{}) -> {}'.format(key, input, output))
+
+
 class Cache():
     """Abstracts a cache using Redis."""
     def __init__(self):
