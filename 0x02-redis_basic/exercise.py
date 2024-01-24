@@ -30,10 +30,10 @@ class Cache():
             return value
         return fn(value)
 
-    def get_str(self, value):
-        """Casts value to a string"""
-        pass
+    def get_str(self, key: str) -> str:
+        """Calls `self.get` with string casting function as `fn` parameter."""
+        return self.get(key, str)
 
-    def get_int(self, value):
-        """Casts value to an integer"""
-        pass
+    def get_int(self, key) -> int:
+        """Calls `self.get` with integer casting function as `fn` parameter."""
+        return self.get(key, int)
