@@ -21,7 +21,7 @@ class Cache():
         self._redis.set(key, data)
         return key
 
-    def get(self, key: str, fn: Optional[Callable[[Any], Any]]) -> Any:
+    def get(self, key: str, fn: Optional[Callable[[Any], Any]] = None) -> Any:
         """Takes a `key` string and an optional callable `fn`. Gets value
         associated with `key` from Redis and type cast the vaule using `fn`
         before returning it."""
