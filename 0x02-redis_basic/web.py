@@ -17,17 +17,28 @@ def count_access(method: Callable) -> Callable:
     @wraps(method)
     def wrapper(url: str) -> str:
         """A wrapper function for the decorator"""
+        cache = redis.Redis()
         cache.incr(f'count:{url}', 1)
         cached_response = cache.get(url)
         if cached_response:
-            return str(cached_response)
-        response = method(url)
-        cache.set(url, response, ex=10)
-        return response
+            return cached_response.decode()
+
+        try:
+            response = method(url)
+            if response.status_code == 200:
+                cache.set(url, response.text, ex=10)
+                return response.text
+            else:
+                # Handle non-200 response
+                return f"Error: {response.status_code}"
+        except (requests.RequestException, redis.RedisError) as e:
+            # Handle exceptions
+            return f"Error: {str(e)}"
+
     return wrapper
 
 
 @count_access
 def get_page(url: str) -> str:
-    """Obtain the HTML content of `url` and returns it."""
-    return requests.get(url).text
+    """Obtain the HTML content of `url` and return it."""
+    return requests.get(url)
