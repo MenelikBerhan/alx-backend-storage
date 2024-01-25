@@ -4,8 +4,11 @@ Contais a function that keeps track of url requests.
 """
 import redis
 import requests
+import requests_cache
 from functools import wraps
 from typing import Callable
+
+cache = redis.Redis()
 
 
 def count_access(method: Callable) -> Callable:
@@ -15,11 +18,18 @@ def count_access(method: Callable) -> Callable:
     @wraps(method)
     def wrapper(url: str) -> str:
         """A wrapper function for the decorator"""
-        cache = redis.Redis()
         cache.incr(f'count:{{{url}}}', 1)
         cached_response = cache.get(url)
         if cached_response:
             return cached_response.decode()
+
+        with requests_cache.enabled():
+            # Set the cache name and backend
+            requests_cache.install_cache(
+                cache_name='my_cache',
+                backend='redis',
+                expire_after=10  # Set expiration time of 10 seconds
+            )
         response = method(url)
         cache.set(url, response, ex=10)
         return response
