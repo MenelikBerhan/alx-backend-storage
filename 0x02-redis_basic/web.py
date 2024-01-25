@@ -18,11 +18,11 @@ def count_access(method: Callable) -> Callable:
     def wrapper(url: str) -> str:
         """A wrapper function for the decorator"""
         cache = redis.Redis()
-        cache.incr(f'count:{url}', 1)
+
         cached_response = cache.get(url)
         if cached_response:
             return cached_response.decode()
-
+        cache.incr(f'count:{url}', 1)
         try:
             response = method(url)
             if response.status_code == 200:
