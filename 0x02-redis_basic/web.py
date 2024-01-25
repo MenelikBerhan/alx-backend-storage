@@ -1,44 +1,31 @@
-#!/usr/bin/env python3
-"""
-Contais a function that keeps track of url requests.
-"""
 import redis
 import requests
-from functools import wraps
-from typing import Callable
-
-cache = redis.Redis()
+from typing import Dict
 
 
-def count_access(method: Callable) -> Callable:
-    """A decorator that tracks how many times a particular URL was accessed
-    in the key "count:{url}" and cache the result with an expiration time
-    of 10 seconds."""
-    @wraps(method)
-    def wrapper(url: str) -> str:
-        """A wrapper function for the decorator"""
-        cache = redis.Redis()
-
-        cached_response = cache.get(url)
-        if cached_response:
-            return cached_response.decode()
-        cache.incr(f'count:{url}', 1)
-        try:
-            response = method(url)
-            if response.status_code == 200:
-                cache.set(url, response.text, ex=10)
-                return response.text
-            else:
-                # Handle non-200 response
-                return f"Error: {response.status_code}"
-        except (requests.RequestException, redis.RedisError) as e:
-            # Handle exceptions
-            return f"Error: {str(e)}"
-
-    return wrapper
-
-
-@count_access
 def get_page(url: str) -> str:
-    """Obtain the HTML content of `url` and return it."""
-    return requests.get(url)
+    """Obtain the HTML content of `url` and return it, with caching and access
+    count tracking."""
+    cache = redis.Redis()
+
+    # Check if the URL is already cached
+    cached_response = cache.get(url)
+    if cached_response:
+        return cached_response.decode()
+
+    # Increment the access count for the URL
+    access_count_key = f'count:{url}'
+    access_count = cache.incr(access_count_key, 1)
+
+    if access_count == 1:
+        # Make the request and cache the response if it's the first access
+        response = requests.get(url)
+        if response.status_code == 200:
+            response_text = response.text
+            cache.set(url, response_text, ex=10)
+            return response_text
+        else:
+            return f"Error: {response.status_code}"
+    else:
+        # Return an error message if the URL was accessed before but not cached
+        return "Error: URL already accessed before but not cached."
