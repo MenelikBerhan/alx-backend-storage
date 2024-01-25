@@ -19,7 +19,7 @@ def count_access(method: Callable) -> Callable:
         cache.incr(f'count:{{{url}}}', 1)
         response = method(url)
         cache.set(url, response, ex=10)
-        return response
+        return cache.get(url)
     return wrapper
 
 
