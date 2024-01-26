@@ -17,12 +17,15 @@ def count_access(method: Callable) -> Callable:
     @wraps(method)
     def wrapper(url: str) -> str:
         """A wrapper function for the decorator"""
-        cache.incr(f'count:{url}', 1)
-        cached_response = cache.get(url)
+        if not cache.get("count:{}".format(url)):
+            cache.set("count:{}".format(url), 1)
+        else:
+            cache.incr("count:{}".format(url), 1)
+        cached_response = cache.get("response:{}".format(url))
         if cached_response:
             return str(cached_response)
         response = method(url)
-        cache.set(url, response, ex=10)
+        cache.setex("response:{}".format(url), 10, response)
         return response
     return wrapper
 
